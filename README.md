@@ -56,7 +56,7 @@ AI-Powered-Smart-Traffic-Monitoring/
 │   ├── plate_detector.py
 │   ├── ocr.py
 │   ├── analytics.py
-│   └── utils.py
+│   └── tacker.py
 │
 ├── requirements.txt
 └── README.md
