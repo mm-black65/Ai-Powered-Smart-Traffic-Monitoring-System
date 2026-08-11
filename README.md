@@ -12,7 +12,7 @@
 ---
 ## 🎥 Demo / Output
 <p align="center">
-  <img src="output\image.png" alt="Smart Traffic Monitoring System Output" width="900">
+  <img src="output/image.png" alt="Smart Traffic Monitoring System Output" width="900">
 </p>
 
 ---
