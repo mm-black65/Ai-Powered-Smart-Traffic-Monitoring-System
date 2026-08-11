@@ -6,7 +6,7 @@ from utils import draw_statistics
 
 detector = TrafficDetector()
 
-video = cv2.VideoCapture("../videos/video2.mp4")
+video = cv2.VideoCapture("../videos/video1.mp4")
 frame_width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
 frame_height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = int(video.get(cv2.CAP_PROP_FPS))
