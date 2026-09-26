@@ -1,6 +1,6 @@
 # 🚦 AI-Powered Smart Traffic Monitoring System
 
-> **An end-to-end computer vision pipeline for automated traffic scene understanding, vehicle analytics, traffic-light state recognition, and license-plate recognition from prerecorded road footage.**
+> **An end-to-end computer vision pipeline for traffic-scene understanding, vehicle analytics, traffic-light recognition, lane analysis, speed estimation, license-plate recognition, and traffic-violation detection from prerecorded road footage.**
 
 ![Python](https://img.shields.io/badge/Python-3.x-blue?logo=python)
 ![OpenCV](https://img.shields.io/badge/OpenCV-Computer%20Vision-green?logo=opencv)
@@ -10,92 +10,101 @@
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
 ---
+
 ## 🎥 Demo / Output
+
 <p align="center">
-  <img src="output/image.png" alt="Smart Traffic Monitoring System Output" width="900">
+  <img src="output/image.png" alt="AI Smart Traffic Monitoring System Output" width="900">
 </p>
 
+The system processes prerecorded road footage and generates annotated traffic-analysis output containing object detections, tracking information, traffic-light state, lane information, vehicle speed, license-plate results, and detected traffic violations.
+
 ---
-## 📌 Overview
 
-The **AI-Powered Smart Traffic Monitoring System** is a computer vision pipeline designed to analyze prerecorded traffic footage and automatically extract meaningful information from road scenes.
+# 📌 Overview
 
-Instead of manually inspecting traffic videos, the system processes each frame through a sequence of detection, recognition, and analytics modules to identify road users and traffic conditions.
+The **AI-Powered Smart Traffic Monitoring System** is a modular computer vision pipeline designed to analyze prerecorded traffic footage and extract structured information from road scenes.
 
-The system currently supports:
+The system combines object detection, tracking, image processing, OCR, geometric calibration, lane analysis, and traffic analytics into a single processing pipeline.
 
-* 🚦 Traffic light detection and state recognition
+### Current capabilities
+
+* 🚦 Traffic-light detection and state recognition
 * 🚗 Vehicle detection and classification
 * 🚶 Pedestrian detection
-* 🔢 License plate detection
-* 📝 License plate recognition using OCR
+* 🔢 License-plate detection
+* 📝 License-plate recognition using OCR
+* 🎯 Multi-object tracking
+* 🛣️ Lane detection and vehicle-lane association
+* 📏 Vehicle speed estimation
+* 🚨 Red-light violation detection
 * 📊 Vehicle and pedestrian statistics
-* 🎥 Annotated output video generation
+* 🎥 Annotated video generation
 
-The project demonstrates how **deep learning models, image processing, object detection, OCR, and video analytics** can be integrated into a single computer vision application.
+The project focuses on demonstrating how multiple computer-vision components can be integrated into one end-to-end traffic-analysis system.
 
 ---
 
 # 🎯 Problem Statement
 
-Traditional traffic monitoring relies heavily on manual observation or infrastructure-specific sensors.
+Traditional traffic monitoring often relies on manual observation or dedicated infrastructure.
 
-A vision-based monitoring system can instead use existing video footage to automatically answer questions such as:
+A vision-based system can instead use existing road footage to automatically answer questions such as:
 
 * How many vehicles are present?
 * What types of vehicles are on the road?
 * How many pedestrians are visible?
 * What is the current traffic signal state?
+* Which lane is a vehicle occupying?
+* How fast are tracked vehicles moving?
 * Can visible license plates be extracted?
-* How does traffic change throughout the video?
+* Did a vehicle cross a restricted area during a red signal?
+* How does traffic behavior change throughout the video?
 
-The goal of this project is to build a modular pipeline capable of extracting these observations automatically from traffic footage.
+The goal of this project is to build a modular computer vision pipeline capable of extracting these observations automatically from traffic footage.
 
 ---
 
 # 🧠 System Architecture
 
-The application follows a modular computer vision pipeline:
+The current pipeline follows this general processing flow:
 
 ```text
-                 ┌─────────────────────┐
-                 │   Traffic Video     │
-                 │     (.mp4)          │
-                 └──────────┬──────────┘
-                            │
-                            ▼
-                 ┌─────────────────────┐
-                 │   Video Processing  │
-                 │     / Frame I/O     │
-                 └──────────┬──────────┘
-                            │
-                            ▼
-                 ┌─────────────────────┐
-                 │   Object Detection  │
-                 │       YOLO          │
-                 └──────────┬──────────┘
-                            │
-            ┌───────────────┼────────────────┐
-            │               │                │
-            ▼               ▼                ▼
-       🚗 Vehicles      🚶 Pedestrians    🚦 Traffic Light
-            │               │                │
-            ▼               │                ▼
-      Vehicle Counts        │          State Recognition
-            │               │
-            └───────┬───────┘
-                    │
-                    ▼
-             🔢 License Plates
-                    │
-                    ▼
-              📝 OCR Processing
-                    │
-                    ▼
-             📊 Traffic Analytics
-                    │
-                    ▼
-            🎥 Annotated Video
+                    Traffic Video
+                         │
+                         ▼
+                Video / Frame I/O
+                         │
+                         ▼
+                  YOLO Detection
+                         │
+          ┌──────────────┼──────────────┐
+          │              │              │
+          ▼              ▼              ▼
+       Vehicles      Pedestrians    Traffic Light
+          │                             │
+          ▼                             ▼
+       Tracking                  State Recognition
+          │
+     ┌────┼───────────────┐
+     │    │               │
+     ▼    ▼               ▼
+   Lane  Speed        License Plate
+ Analysis Estimation    Detection
+     │    │               │
+     │    │               ▼
+     │    │             OCR
+     │    │               │
+     └────┴───────┬───────┘
+                  │
+                  ▼
+          Traffic Analytics
+                  │
+                  ▼
+       Violation Detection
+                  │
+                  ▼
+          Annotated Output
 ```
 
 ---
@@ -104,33 +113,37 @@ The application follows a modular computer vision pipeline:
 
 ## 1. Video Input
 
-The system accepts prerecorded traffic footage as its input.
+The system accepts prerecorded traffic footage as input.
 
-Each video is read frame-by-frame using OpenCV.
+Each video is processed frame-by-frame using OpenCV.
 
 ```text
 Input Video
      ↓
 Frame Extraction
      ↓
-Frame Processing
+Object Detection
      ↓
-Detection & Recognition
+Tracking
+     ↓
+Scene Analysis
+     ↓
+Traffic Analytics
      ↓
 Annotated Frame
      ↓
 Output Video
 ```
 
-This makes the pipeline deterministic and allows the same footage to be repeatedly tested while developing and evaluating individual modules.
+Using prerecorded footage makes the system reproducible during development and allows different modules to be tested on the same traffic scenarios.
 
 ---
 
-## 2. Object Detection
+# 2. Object Detection
 
-The primary detection stage uses **Ultralytics YOLO** to identify objects within each frame.
+The primary object-detection stage uses **Ultralytics YOLO**.
 
-The system focuses on traffic-relevant classes:
+The detector identifies traffic-relevant objects such as:
 
 | Category          | Objects                     |
 | ----------------- | --------------------------- |
@@ -138,9 +151,9 @@ The system focuses on traffic-relevant classes:
 | 🚶 People         | Pedestrian                  |
 | 🚦 Infrastructure | Traffic Light               |
 
-For every detected object, the pipeline obtains information such as:
+For each detection, the system obtains:
 
-* Class
+* Object class
 * Confidence score
 * Bounding-box coordinates
 
@@ -157,15 +170,117 @@ YOLO Detector
   └── Confidence
 ```
 
-These detections are then passed to downstream modules.
+These detections are then passed to the tracking and analytics modules.
 
 ---
 
-# 🚦 Traffic Light Recognition
+# 🎯 3. Multi-Object Tracking
 
-Traffic-light processing is separated from general object detection.
+The tracking module assigns persistent IDs to detected objects across frames.
 
-After identifying a traffic-light region, the system analyzes the corresponding image region to determine the active signal state:
+```text
+Detection
+    ↓
+Object Tracking
+    ↓
+Persistent Object ID
+    ↓
+Trajectory
+```
+
+Tracking allows the system to distinguish between individual vehicles instead of treating every frame detection as a new vehicle.
+
+This provides the foundation for:
+
+* More reliable vehicle counting
+* Vehicle trajectories
+* Lane association
+* Speed estimation
+* Violation detection
+
+---
+
+# 🛣️ 4. Lane Detection and Analysis
+
+The system includes lane-analysis functionality for identifying road-lane regions and associating tracked vehicles with lanes.
+
+The lane-processing pipeline can be represented as:
+
+```text
+Traffic Frame
+      ↓
+Lane Detection
+      ↓
+Lane Regions
+      ↓
+Tracked Vehicle Position
+      ↓
+Vehicle-Lane Association
+```
+
+Lane information can then be used by downstream modules such as speed analysis and traffic-violation detection.
+
+---
+
+# 📐 5. Camera Calibration
+
+Vehicle speed estimation requires converting image-space movement into a meaningful physical distance.
+
+The project therefore includes a calibration module.
+
+```text
+Image Coordinates
+       ↓
+Scene Calibration
+       ↓
+Calibration Parameters
+       ↓
+World / Road Coordinates
+```
+
+The calibration process generates parameters stored in:
+
+```text
+src/calibration.json
+```
+
+These parameters are used by the speed-estimation pipeline to improve distance estimation from tracked vehicle movement.
+
+---
+
+# 📏 6. Vehicle Speed Estimation
+
+The system estimates vehicle speed using tracked object movement and calibrated scene geometry.
+
+Conceptually:
+
+```text
+Tracked Vehicle
+      ↓
+Position History
+      ↓
+Pixel Displacement
+      ↓
+Camera Calibration
+      ↓
+Physical Distance
+      ↓
+Time Difference
+      ↓
+Estimated Speed
+```
+
+The speed-estimation module uses vehicle trajectories rather than individual frame detections.
+
+This allows speed to be calculated over a sequence of frames instead of attempting to estimate speed from a single image.
+
+---
+
+# 🚦 7. Traffic Light Recognition
+
+Traffic-light processing is separated from general vehicle detection.
+
+After identifying a traffic-light region, the system analyzes the corresponding region of interest to determine the active state.
 
 ```text
 Traffic Light
@@ -181,57 +296,41 @@ Image Processing
       └── 🟢 Green
 ```
 
-Separating traffic-light recognition from general object detection keeps the system modular and makes it possible to improve the recognition algorithm independently.
+The detected signal state is then passed to the traffic-analysis and violation-detection modules.
 
 ---
 
-# 🚗 Vehicle Analytics
+# 🚨 8. Red-Light Violation Detection
 
-The system classifies detected road vehicles into multiple categories:
+The system includes a traffic-violation detection module that combines traffic-light state, vehicle tracking, and road-scene information.
 
-* Car
-* Motorcycle
-* Bus
-* Truck
-
-The detected objects are aggregated to generate traffic statistics.
-
-Example:
+A simplified representation is:
 
 ```text
-Traffic Statistics
-
-Cars        : 24
-Motorcycles : 11
-Buses       : 3
-Trucks      : 5
-Pedestrians : 8
+Traffic Light State
+        +
+Vehicle Tracking
+        +
+Lane / Road Information
+        +
+Violation Region
+        ↓
+Red-Light Violation Detection
 ```
 
-These statistics are updated during video processing and can be displayed directly on the annotated frames.
+When the relevant conditions are satisfied, the system can flag a vehicle as a potential red-light violation.
+
+This module demonstrates how individual computer-vision outputs can be combined into a higher-level traffic event.
 
 ---
 
-# 🚶 Pedestrian Detection
+# 🔢 9. License Plate Detection
 
-Pedestrians are detected as independent objects rather than being treated as part of vehicle traffic.
-
-This allows the system to maintain separate statistics for:
-
-* Vehicle traffic
-* Pedestrian activity
-
-This distinction is useful for future extensions such as pedestrian-density analysis and road-safety monitoring.
-
----
-
-# 🔢 License Plate Detection
-
-License plate recognition is implemented as a two-stage process.
+License-plate processing is implemented as a two-stage pipeline.
 
 ### Stage 1 — Plate Detection
 
-A dedicated license-plate detection model identifies the plate region.
+A license-plate detector identifies the plate region.
 
 ```text
 Vehicle
@@ -245,7 +344,7 @@ Plate Bounding Box
 
 ### Stage 2 — OCR
 
-The detected plate region is then passed to an OCR engine.
+The detected plate region is passed to the OCR pipeline.
 
 ```text
 Plate Region
@@ -260,13 +359,53 @@ EasyOCR
 Recognized Text
 ```
 
-This separation is important because **detecting a license plate and reading its characters are two different computer vision problems**.
+Separating plate detection and OCR allows each stage to be improved independently.
 
 ---
 
-# 📊 Traffic Analytics
+# 🚶 10. Pedestrian Detection
 
-The analytics module aggregates detections generated throughout the video.
+Pedestrians are detected independently from vehicle traffic.
+
+This allows the system to maintain separate statistics for:
+
+* Vehicle traffic
+* Pedestrian activity
+
+The information can also support future extensions such as pedestrian-density analysis and road-safety analytics.
+
+---
+
+# 🚗 11. Vehicle Analytics
+
+Detected vehicles are classified into categories such as:
+
+* Car
+* Motorcycle
+* Bus
+* Truck
+
+The analytics module aggregates detections and tracking information to produce traffic statistics.
+
+Example:
+
+```text
+Traffic Statistics
+
+Cars          : 24
+Motorcycles   : 11
+Buses         : 3
+Trucks        : 5
+Pedestrians   : 8
+```
+
+Because tracking is incorporated into the pipeline, vehicle analytics can use persistent object identities rather than relying only on individual frame detections.
+
+---
+
+# 📊 12. Traffic Analytics
+
+The analytics layer combines outputs from multiple modules.
 
 Current metrics include:
 
@@ -274,16 +413,21 @@ Current metrics include:
 * Vehicle-class distribution
 * Pedestrian counts
 * Traffic-light state
+* Lane information
+* Vehicle speed
+* Tracking information
+* Detected traffic violations
+* License-plate information
 
-The analytics layer is intentionally separated from the detection layer so that additional metrics can be added without modifying the underlying detection logic.
+The analytics layer is separated from the detection layer so additional metrics can be incorporated without redesigning the entire pipeline.
 
 ---
 
 # 🎥 Output Generation
 
-After processing, the system generates an annotated video.
+After processing, the system generates annotated traffic-analysis output.
 
-The output contains visual information such as:
+The visualization can contain:
 
 ```text
 ┌──────────────────────────────────────────────┐
@@ -292,16 +436,24 @@ The output contains visual information such as:
 │ Cars: 24   Bikes: 11   Bus: 3   Truck: 5   │
 │ Pedestrians: 8                              │
 │                                              │
-│       ┌─────────────┐                       │
-│       │     CAR     │                       │
-│       │   0.91      │                       │
-│       └─────────────┘                       │
+│ Speed: 38 km/h                              │
+│ Lane: 2                                     │
 │                                              │
-│            Traffic Scene                    │
+│ Vehicle ID: 17                              │
+│                                              │
+│ ⚠ Red-Light Violation                       │
+│                                              │
+│       ┌─────────────┐                        │
+│       │     CAR     │                        │
+│       │    0.91     │                        │
+│       └─────────────┘                        │
+│                                              │
 └──────────────────────────────────────────────┘
 ```
 
-The processed footage is stored in the `output/` directory.
+The generated output is stored locally in the `output/` directory.
+
+The repository keeps the representative output image for documentation, while generated video output can be excluded from Git tracking.
 
 ---
 
@@ -311,23 +463,32 @@ The processed footage is stored in the `output/` directory.
 AI-Powered-Smart-Traffic-Monitoring/
 │
 ├── models/
-│   ├── yolov8n.pt
-│   └── license_plate.pt
-│
-├── videos/
-│   ├── input.mp4
-│   └── test.mp4
+│   └── yolov8n.pt
 │
 ├── output/
+│   ├── image.png
+│   └── output.mp4
 │
 ├── src/
-│   ├── main.py
-│   ├── detector.py
-│   ├── traffic_light.py
-│   ├── plate_detector.py
-│   ├── ocr.py
 │   ├── analytics.py
-│   └── tracker.py
+│   ├── calibrate.py
+│   ├── calibration.json
+│   ├── detector.py
+│   ├── lanes.py
+│   ├── main.py
+│   ├── ocr.py
+│   ├── plate_detector.py
+│   ├── speed_estimator.py
+│   ├── tracker.py
+│   ├── traffic_light.py
+│   ├── utils.py
+│   └── __pycache__/
+│
+├── videos/
+│   ├── 14806068_2160_3840_32fps.mp4
+│   ├── 18437773-uhd_3840_2160_50fps.mp4
+│   ├── video1.mp4
+│   └── video2.mp4
 │
 ├── requirements.txt
 └── README.md
@@ -335,34 +496,35 @@ AI-Powered-Smart-Traffic-Monitoring/
 
 ### Module Responsibilities
 
-| Module              | Responsibility                                     |
-| ------------------- | -------------------------------------------------- |
-| `main.py`           | Application entry point and pipeline orchestration |
-| `detector.py`       | General object detection                           |
-| `traffic_light.py`  | Traffic-light state recognition                    |
-| `plate_detector.py` | License-plate detection                            |
-| `ocr.py`            | License-plate text recognition                     |
-| `analytics.py`      | Traffic statistics and aggregation                 |
-| `tracker.py`        | Object tracking functionality                      |
-| `models/`           | Trained/pretrained model weights                   |
-| `videos/`           | Input traffic footage                              |
-| `output/`           | Generated annotated videos                         |
+| Module               | Responsibility                                          |
+| -------------------- | ------------------------------------------------------- |
+| `main.py`            | Main application entry point and pipeline orchestration |
+| `detector.py`        | General object detection                                |
+| `tracker.py`         | Multi-object tracking and persistent IDs                |
+| `traffic_light.py`   | Traffic-light state recognition                         |
+| `plate_detector.py`  | License-plate detection                                 |
+| `ocr.py`             | License-plate text recognition                          |
+| `lanes.py`           | Lane detection and vehicle-lane analysis                |
+| `calibrate.py`       | Camera/scene calibration                                |
+| `calibration.json`   | Stored calibration parameters                           |
+| `speed_estimator.py` | Vehicle speed estimation                                |
+| `analytics.py`       | Traffic statistics and event aggregation                |
+| `utils.py`           | Supporting utility functions                            |
+| `models/`            | Model weights                                           |
+| `videos/`            | Input traffic footage                                   |
+| `output/`            | Generated visual outputs                                |
 
-The modular structure allows individual components to be developed and tested independently rather than placing the entire application inside a single script.
+> `__pycache__/` contains Python-generated cache files and should normally be excluded from version control.
 
 ---
 
 # 🛠️ Technology Stack
 
-### Programming
+### Python
 
-**Python**
+Primary programming language used to integrate the computer-vision pipeline.
 
-Used as the primary development language for integrating the computer vision and deep-learning components.
-
-### Computer Vision
-
-**OpenCV**
+### OpenCV
 
 Used for:
 
@@ -371,28 +533,21 @@ Used for:
 * Image manipulation
 * Drawing annotations
 * Region-of-interest processing
+* Calibration-related image operations
 
-### Object Detection
+### Ultralytics YOLO
 
-**Ultralytics YOLO**
+Used for object detection and traffic-object classification.
 
-Used for real-time object detection and traffic-object classification.
+### PyTorch
 
-### Deep Learning
+Provides the deep-learning framework underlying the detection models.
 
-**PyTorch**
-
-Provides the underlying deep-learning framework used by the detection models.
-
-### Optical Character Recognition
-
-**EasyOCR**
+### EasyOCR
 
 Used to extract text from detected license-plate regions.
 
-### Numerical Processing
-
-**NumPy**
+### NumPy
 
 Used for numerical operations and image-array manipulation.
 
@@ -403,9 +558,9 @@ Used for numerical operations and image-array manipulation.
 ## 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/AI-Powered-Smart-Traffic-Monitoring.git
+git clone https://github.com/mm-black65/Ai-Powered-Smart-Traffic-Monitoring-System.git
 
-cd AI-Powered-Smart-Traffic-Monitoring
+cd Ai-Powered-Smart-Traffic-Monitoring-System
 ```
 
 ## 2. Create a Virtual Environment
@@ -448,7 +603,7 @@ Then run:
 python src/main.py
 ```
 
-The processed video will be generated inside:
+The processed output will be generated inside:
 
 ```text
 output/
@@ -458,140 +613,147 @@ output/
 
 # 📈 Example Output
 
-The system produces an annotated traffic video containing:
+The system can generate an annotated traffic-analysis result containing:
 
-* Bounding boxes around detected objects
+* Bounding boxes
 * Object class labels
 * Detection confidence
+* Persistent tracking IDs
 * Traffic-light state
 * Vehicle statistics
 * Pedestrian statistics
-* Detected license-plate information
+* Lane information
+* Estimated vehicle speed
+* License-plate information
+* Traffic-violation alerts
 
-This converts raw traffic footage into a machine-readable and visually interpretable traffic-analysis output.
+The result converts raw road footage into structured and visually interpretable traffic information.
 
 ---
 
 # 🧩 Engineering Design
 
-A key design decision in this project is **separation of responsibilities**.
+A major design decision in this project is **separation of responsibilities**.
 
-Instead of implementing all functionality inside one large processing loop, the application separates:
+Instead of placing the entire application inside one large processing loop, functionality is divided into dedicated modules:
 
 ```text
 Detection
-   ↓
-Recognition
-   ↓
+    ↓
 Tracking
-   ↓
+    ↓
+Calibration / Scene Analysis
+    ↓
+Lane Analysis
+    ↓
+Speed Estimation
+    ↓
+OCR / Recognition
+    ↓
+Violation Detection
+    ↓
 Analytics
-   ↓
+    ↓
 Visualization
 ```
 
-This provides several advantages:
-
 ### Modularity
 
-Individual components can be replaced without redesigning the entire application.
+Individual components can be developed and modified independently.
 
 ### Maintainability
 
-Each module has a specific responsibility, making the codebase easier to understand and debug.
+Each module has a specific responsibility, making the system easier to debug and extend.
 
 ### Extensibility
 
-New capabilities such as speed estimation or red-light violation detection can be added as independent processing stages.
+New traffic-analysis features can be integrated without rewriting the entire pipeline.
 
 ### Reusability
 
-The same detection and analytics modules can potentially be reused with different traffic datasets or video sources.
+The same pipeline structure can be adapted to different prerecorded traffic datasets and camera viewpoints.
 
 ---
 
 # 🔬 Current Limitations
 
-The current implementation is designed primarily as a **video-analysis prototype**, and therefore has several limitations:
+Although the system now includes multiple advanced analysis modules, several practical limitations remain:
 
 * Accuracy depends on video quality and camera angle.
 * License-plate recognition can degrade with motion blur, small plates, or occlusion.
-* Traffic-light recognition depends on visibility and illumination conditions.
-* Vehicle counts based solely on frame detections can count the same vehicle multiple times without robust tracking.
+* Traffic-light recognition depends on visibility and illumination.
+* Speed estimation depends on the quality of scene calibration.
+* Lane detection can be affected by road markings, perspective, shadows, and occlusion.
+* Red-light violation detection depends on correctly identifying the signal state, vehicle trajectory, and violation region.
 * The current system processes prerecorded video rather than a live camera stream.
-
-These limitations provide clear directions for future engineering improvements.
+* Detection and tracking performance depends on the available computational resources.
 
 ---
 
 # 🔮 Future Development
 
-The architecture is designed to support several advanced traffic-intelligence features.
+The core computer-vision pipeline is currently implemented. Future work can focus on improving **robustness, evaluation, and deployment** rather than simply adding more detection modules.
 
-### 1. Multi-Object Tracking
+### 1. Accuracy Evaluation
 
-Assign persistent IDs to detected vehicles and pedestrians.
+Develop a formal evaluation pipeline using annotated test footage.
 
-```text
-Detection
-    ↓
-Tracking
-    ↓
-Vehicle ID
-    ↓
-Trajectory
-```
+Potential metrics include:
 
-This would enable more reliable counting and movement analysis.
+* Precision
+* Recall
+* F1-score
+* mAP for object detection
+* OCR accuracy
+* Tracking metrics
+* Speed-estimation error
+* Violation-detection accuracy
 
-### 2. Vehicle Speed Estimation
+### 2. Performance Optimization
 
-Estimate vehicle speed using tracked trajectories and calibrated scene geometry.
+Improve processing speed through:
 
-### 3. Lane Detection
+* Model optimization
+* Frame skipping
+* Batch processing
+* GPU acceleration
+* Resolution optimization
 
-Identify road lanes and determine which lane each vehicle occupies.
+### 3. Real-Time Camera Support
 
-### 4. Red-Light Violation Detection
+Extend the current prerecorded-video pipeline to:
 
-Combine:
+* Webcam input
+* CCTV streams
+* RTSP camera feeds
 
-```text
-Traffic Light State
-        +
-Vehicle Tracking
-        +
-Stop Line
-        ↓
-Violation Detection
-```
+### 4. Traffic Analytics Dashboard
 
-to automatically identify vehicles crossing during a red signal.
+Create a dashboard for visualizing:
 
-### 5. Traffic Congestion Analysis
-
-Use vehicle density, movement, and lane occupancy to estimate congestion levels.
-
-### 6. Live Monitoring Dashboard
-
-Build a dashboard for displaying:
-
-* Current traffic volume
+* Traffic volume
 * Vehicle distribution
-* Pedestrian activity
-* Signal state
-* Detected violations
-* Historical statistics
+* Average speed
+* Lane occupancy
+* Traffic-light state
+* Violation events
+* Historical traffic statistics
 
-### 7. Real-Time Camera Input
+### 5. Edge Deployment
 
-Extend the pipeline from prerecorded footage to live CCTV or webcam streams.
+Explore deployment on hardware such as:
+
+* NVIDIA Jetson
+* Raspberry Pi with an accelerator
+* Other edge-AI platforms
+
+This would move the project toward real-world intelligent transportation applications.
 
 ---
 
 # 🌆 Potential Applications
 
-The system can serve as a foundation for:
+The system provides a foundation for applications such as:
 
 * Smart-city traffic monitoring
 * Intelligent Transportation Systems (ITS)
@@ -600,13 +762,14 @@ The system can serve as a foundation for:
 * Vehicle-flow analysis
 * Traffic congestion monitoring
 * License-plate-based traffic studies
-* Automated intersection monitoring
+* Intersection monitoring
+* Traffic-rule violation analysis
 
 ---
 
 # 📚 What This Project Demonstrates
 
-This project brings together multiple areas of engineering and AI:
+This project integrates multiple areas of computer vision and AI:
 
 ```text
 Python
@@ -617,22 +780,32 @@ Python
   │
   ├── Object Detection
   │
+  ├── Multi-Object Tracking
+  │
   ├── Image Processing
   │
   ├── OCR
   │
+  ├── Camera Calibration
+  │
+  ├── Lane Analysis
+  │
+  ├── Speed Estimation
+  │
+  ├── Traffic-Violation Detection
+  │
   ├── Video Processing
   │
-  └── Data Analytics
+  └── Traffic Analytics
 ```
 
-More importantly, it demonstrates the integration of these components into a **single end-to-end computer vision pipeline** rather than using an isolated machine-learning model.
+More importantly, the project demonstrates the integration of these components into a **single end-to-end computer vision system** rather than treating each model as an isolated experiment.
 
 ---
 
-# 👨‍💻 Project Status
+# 📊 Project Status
 
-**Current Status:** 🚧 Active Development
+**Current Status: 🚧 Active Development**
 
 ### Implemented
 
@@ -644,18 +817,24 @@ More importantly, it demonstrates the integration of these components into a **s
 * [x] Traffic-light state recognition
 * [x] License-plate detection
 * [x] OCR pipeline
+* [x] Multi-object tracking
 * [x] Traffic statistics
-* [x] Annotated video generation
+* [x] Camera/scene calibration
+* [x] Lane detection
+* [x] Vehicle-lane analysis
+* [x] Vehicle speed estimation
+* [x] Red-light violation detection
+* [x] Annotated output generation
 
-### Planned
+### Current Development Focus
 
-* [ ] Robust multi-object tracking
-* [ ] Vehicle speed estimation
-* [ ] Lane detection
-* [ ] Red-light violation detection
-* [ ] Congestion estimation
-* [ ] Traffic analytics dashboard
+* [ ] Quantitative accuracy evaluation
+* [ ] Detection/tracking performance benchmarking
+* [ ] Speed-estimation error analysis
+* [ ] Violation-detection evaluation
+* [ ] Pipeline optimization
 * [ ] Real-time camera support
+* [ ] Traffic analytics dashboard
 
 ---
 
@@ -665,19 +844,22 @@ This project is licensed under the **MIT License**.
 
 ---
 
-## ⭐ Acknowledgements
+# ⭐ Acknowledgements
 
-This project uses open-source technologies including **Ultralytics YOLO, OpenCV, PyTorch, EasyOCR, and NumPy**.
+This project uses open-source technologies including:
+
+* Ultralytics YOLO
+* OpenCV
+* PyTorch
+* EasyOCR
+* NumPy
 
 ---
 
-## 📬 Author
+# 👨‍💻 Author
 
 **Mahi**
 
-Computer Vision • Robotics • Embedded Systems
+Computer Vision • Robotics • AI • Embedded Systems
 
-```
-Built to explore how AI can transform raw traffic
-video into actionable transportation intelligence.
-```
+> Built to explore how computer vision can transform raw traffic video into structured transportation intelligence.
