@@ -22,6 +22,10 @@ class VehicleTracker:
         `min_distance` and `max_distance`) instead of being one flat
         number, so a small distant car isn't held to the same pixel
         tolerance as a large nearby one.
+      - Each track can only be claimed by ONE detection per frame.
+        Without this, two near-duplicate boxes from the detector (a
+        known YOLO NMS edge case) could both match the same existing
+        track and render as two overlapping boxes sharing one ID.
     """
 
     VEHICLE_CLASSES = {"car", "motorcycle", "bus", "truck"}
@@ -57,12 +61,16 @@ class VehicleTracker:
         threshold = diagonal * self.distance_scale
         return max(self.min_distance, min(threshold, self.max_distance))
 
-    def find_closest_track(self, center, class_name):
-        """Nearest existing track of the SAME class only."""
+    def find_closest_track(self, center, class_name, exclude=None):
+        """Nearest existing track of the SAME class, skipping any already claimed this frame."""
+        exclude = exclude or set()
         closest_id = None
         minimum_distance = float("inf")
 
         for track_id, track in self.tracks.items():
+            if track_id in exclude:
+                continue
+
             if track["class_name"] != class_name:
                 continue
 
@@ -94,7 +102,7 @@ class VehicleTracker:
             center = self.get_center(bbox)
             threshold = self.get_match_threshold(bbox)
 
-            closest_id, distance = self.find_closest_track(center, class_name)
+            closest_id, distance = self.find_closest_track(center, class_name, exclude=matched_ids)
 
             if closest_id is not None and distance <= threshold:
                 track_id = closest_id

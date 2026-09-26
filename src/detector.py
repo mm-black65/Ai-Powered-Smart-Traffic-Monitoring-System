@@ -2,9 +2,10 @@ from ultralytics import YOLO
 
 class TrafficDetector:
 
-    def __init__(self, model_path="../models/yolov8n.pt", confidence_threshold=0.4):
+    def __init__(self, model_path="../models/yolov8n.pt", confidence_threshold=0.4, iou_threshold=0.45):
         self.model= YOLO(model_path)
         self.confidence_threshold = confidence_threshold
+        self.iou_threshold = iou_threshold
         self.target_classes = {
         0: "person",
         2: "car",
@@ -15,7 +16,7 @@ class TrafficDetector:
         }
 
     def detect(self, frame):
-        results = self.model(frame, conf=self.confidence_threshold, verbose=False)
+        results = self.model(frame, conf=self.confidence_threshold, iou=self.iou_threshold, verbose=False)
 
         detections = []
 

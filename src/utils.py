@@ -33,6 +33,7 @@ def draw_detection(frame, detection, occupied_labels=None):
     track_id = detection.get("track_id")
     speed_kmh = detection.get("speed_kmh")
     lane = detection.get("lane")
+    plate = detection.get("plate")
 
     if track_id is not None:
       label = f"{class_name.upper()} #{track_id} {confidence:.0%}"
@@ -40,6 +41,8 @@ def draw_detection(frame, detection, occupied_labels=None):
         label += f" {speed_kmh:.0f}km/h"
       if lane is not None:
         label += f" L{lane}"
+      if plate:
+        label += f" [{plate}]"
       if violation:
         label += " VIOLATION"
     else:

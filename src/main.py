@@ -15,16 +15,28 @@ from speed_estimator import SpeedEstimator
 from lanes import LaneMapper
 from lanes import draw_stop_line
 from traffic_light import get_state
+from plate_detector import LicensePlateDetector
+from ocr import LicensePlateOCR
 
 detector = TrafficDetector()
 tracker = VehicleTracker()
+plate_detector = LicensePlateDetector()
+plate_ocr = LicensePlateOCR()
 seen_vehicles = set()
 lane_counts = {}
 vehicle_side = {}
 violations = set()
+vehicle_plates = {}  # track_id -> (plate_text, ocr_confidence)
 traffic_light_state = "unknown"
+frame_index = 0
 
-video = cv2.VideoCapture("../videos/video2.mp4")
+# Plate reading is expensive (a second YOLO pass + full OCR per vehicle),
+# so it's throttled rather than run on every vehicle every frame:
+MIN_VEHICLE_BOX_AREA_FOR_PLATE = 6000  # skip small/distant vehicles -- plates won't be legible
+PLATE_RETRY_EVERY_N_FRAMES = 15        # don't retry a vehicle's plate every single frame
+CONFIDENT_PLATE_THRESHOLD = 0.6        # stop retrying once a reading is this confident
+
+video = cv2.VideoCapture("../videos/video1.mp4")
 frame_width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
 frame_height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = int(video.get(cv2.CAP_PROP_FPS)) or 30
@@ -119,6 +131,32 @@ while True:
 
                 vehicle_side[track_id] = current_side
 
+            vx1, vy1, vx2, vy2 = detection["bbox"]
+            box_area = (vx2 - vx1) * (vy2 - vy1)
+            existing_plate = vehicle_plates.get(track_id)
+            already_confident = existing_plate is not None and existing_plate[1] >= CONFIDENT_PLATE_THRESHOLD
+
+            should_attempt_plate = (
+                not already_confident
+                and box_area >= MIN_VEHICLE_BOX_AREA_FOR_PLATE
+                and frame_index % PLATE_RETRY_EVERY_N_FRAMES == 0
+            )
+
+            if should_attempt_plate:
+                vehicle_crop = frame[vy1:vy2, vx1:vx2]
+                plates = plate_detector.detect(vehicle_crop)
+
+                if plates:
+                    best_plate = max(plates, key=lambda p: p["confidence"])
+                    text, ocr_confidence = plate_ocr.read(best_plate["crop"])
+
+                    if text and (existing_plate is None or ocr_confidence > existing_plate[1]):
+                        vehicle_plates[track_id] = (text, ocr_confidence)
+
+            plate_info = vehicle_plates.get(track_id)
+            if plate_info is not None:
+                detection["plate"] = plate_info[0]
+
             if track_id in violations:
                 detection["violation"] = True
 
@@ -136,6 +174,8 @@ while True:
     draw_statistics(frame, counts)
 
     writer.write(frame)
+
+    frame_index += 1
 
     display_frame = cv2.resize(frame, (1280, 720))
     cv2.imshow("Smart Traffic Monitoring", display_frame)
